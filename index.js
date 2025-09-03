@@ -8,11 +8,10 @@ const currentMonthNum = new Date().getMonth()
 const currentDateNum = new Date().getDate()
 const currentYear = currentDate.getFullYear();
 const yymmdd = `${currentYear}${currentMonthNum.toString().length < 2 ? '0' + (currentMonthNum + 1).toString() : (currentMonthNum + 1).toString()}${currentDateNum.toString().length < 2 ? '0' + currentDateNum.toString() : currentDateNum.toString()}`
-console.log(yymmdd)
 
 
-const dir_dse_merged_eod = `C:\\Users/ASUS/Desktop/merged_eod/merged-eod(20250720_${yymmdd}).csv`;
-const dir_amar_stock_merged_eod = `C:\\Users/ASUS/Desktop/merged_eod/merged-amar_stock_eod(20250720_${yymmdd}).csv`;
+const dir_dse_merged_eod = `C:\\Users/ASUS/Desktop/merged_eod/merged-eod(20250811_${yymmdd}).csv`;
+const dir_amar_stock_merged_eod = `C:\\Users/ASUS/Desktop/merged_eod/merged-amar_stock_eod(20250811_${yymmdd}).csv`;
 const output_file = 'C:\\Users/ASUS/Desktop/merged_eod/final-merged-result.csv';
 const dse_dsex_file = 'C:\\Users/ASUS/Downloads/dsex.csv';
 const modified_dir = `E:\\amar_stock_modified`;
@@ -20,7 +19,6 @@ const modified_dir = `E:\\amar_stock_modified`;
 
 
 const modified_files = fs.readdirSync(modified_dir);
-console.log(modified_files)
 function readCsv(file) {
     return new Promise((resolve, reject) => {
         const rows = [];
@@ -116,18 +114,18 @@ function readCsv(file) {
         const csvWriter = createCsvWriter({
             path: output_file,
             header: [
-                { id: 'SecurityCode', title: 'SecurityCode' },
-                { id: 'ISIN', title: 'ISIN' },
-                { id: 'AssetClass', title: 'AssetClass' },
-                { id: 'CompulsorySpot', title: 'CompulsorySpot' },
-                { id: 'TradeDate', title: 'TradeDate' },
-                { id: 'Close', title: 'Close' },
-                { id: 'Open', title: 'Open' },
-                { id: 'High', title: 'High' },
-                { id: 'Low', title: 'Low' },
-                { id: 'Var', title: 'Var' },
-                { id: 'VarPercent', title: 'VarPercent' },
-                { id: 'Volume', title: 'Volume' },
+                { id: 'SecurityCode', title: '_SecurityCode' },
+                { id: 'ISIN', title: '_ISIN' },
+                { id: 'AssetClass', title: '_AssetClass' },
+                { id: 'CompulsorySpot', title: '_CompulsorySpot' },
+                { id: 'TradeDate', title: '_TradeDate' },
+                { id: 'Close', title: '_Close' },
+                { id: 'Open', title: '_Open' },
+                { id: 'High', title: '_High' },
+                { id: 'Low', title: '_Low' },
+                { id: 'Var', title: '_Var' },
+                { id: 'VarPercent', title: '_VarPercent' },
+                { id: 'Volume', title: '_Volume' },
                 { id: 'Total Value in Taka (mn)', title: 'Total Value in Taka (mn)' },
                 { id: 'Total Trade', title: 'Total Trade' }
             ]
