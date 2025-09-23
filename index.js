@@ -12,7 +12,7 @@ const yymmdd = `${currentYear}${currentMonthNum.toString().length < 2 ? '0' + (c
 
 const dir_dse_merged_eod = `C:\\Users/ASUS/Desktop/merged_eod/merged-eod(20250811_${yymmdd}).csv`;
 const dir_amar_stock_merged_eod = `C:\\Users/ASUS/Desktop/merged_eod/merged-amar_stock_eod(20250811_${yymmdd}).csv`;
-const output_file = 'C:\\Users/ASUS/Desktop/merged_eod/final-merged-result.csv';
+const output_file = `C:\\Users/ASUS/Desktop/merged_eod/today/final-merged-eod(20250811_${yymmdd}).csv`;
 const dse_dsex_file = 'C:\\Users/ASUS/Downloads/dsex.csv';
 const modified_dir = `E:\\amar_stock_modified`;
 
@@ -40,7 +40,9 @@ function readCsv(file) {
             ...item,
             identifier: `${item.TradeDate}${item.Open}${item.High}${item.Low}${item.Close}`,
             Volume: null
-        }));
+        })).filter((item) => {
+            return item.SecurityCode !== 'DS30' && item.SecurityCode !== 'DSES';
+        });
 
         const amarStockLookup = {};
         result_amar_stock.forEach(item => {
@@ -93,10 +95,16 @@ function readCsv(file) {
                 tempObj[row.TradeDate] = await readCsv(`${modified_dir}/${modifiedFilesLookUp[row.TradeDate]}`);
             }
         }
-        const finalMergedData = mergedResult.map(item => {
+        const finalMergedData = mergedResult.filter(item => {
+            if (item.SecurityCode.includes('.AT')) {
+                return false;
+            }else {
+                return true;
+            }
+        }).map(item => {
             if (tempObj[item.TradeDate]) {
                 const foundEle = tempObj[item.TradeDate].find(ele =>
-                    `${ele['TRADING CODE']}` === `${item.SecurityCode}`
+                    `${ele['TRADING CODE']}` === `${item.SecurityCode.includes('.SC') ? item.SecurityCode.replace('.SC', '') : item.SecurityCode}`
                 );
 
                 if (foundEle) {
