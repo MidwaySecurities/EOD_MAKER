@@ -1,13 +1,14 @@
 const fs = require('fs');
+const take_screenshot = require('./take_screenshot');
 const csvParser = require('csv-parser');
 const createCsvWriter = require('csv-writer').createObjectCsvWriter;
 
 
 const currentDate = new Date();
-const currentMonthNum = new Date().getMonth()
+const currentMonthNum = new Date().getMonth() + 1;
 const currentDateNum = new Date().getDate()
 const currentYear = currentDate.getFullYear();
-const yymmdd = `${currentYear}${currentMonthNum.toString().length < 2 ? '0' + (currentMonthNum + 1).toString() : (currentMonthNum + 1).toString()}${currentDateNum.toString().length < 2 ? '0' + currentDateNum.toString() : currentDateNum.toString()}`
+const yymmdd = `${currentYear}${currentMonthNum.toString().length < 2 ? '0' + (currentMonthNum).toString() : (currentMonthNum).toString()}${currentDateNum.toString().length < 2 ? '0' + currentDateNum.toString() : currentDateNum.toString()}`
 
 
 const dir_dse_merged_eod = `C:\\Users/ASUS/Desktop/merged_eod/merged-eod(20250811_${yymmdd}).csv`;
@@ -32,6 +33,35 @@ function readCsv(file) {
 
 (async () => {
     try {
+        // Center text vertically and horizontally, bold, red, blinking
+        const boldRedBlink = '\x1b[1m\x1b[31m\x1b[5m'; // bold, red, blink
+        const reset = '\x1b[0m';
+        const separator = '--------------------------------------------------';
+        const message = 'Reading CSV files, please wait. It takes about 3-5 minutes...';
+
+        // Get terminal size
+        const rows = process.stdout.rows;
+        const cols = process.stdout.columns;
+
+        // Function to center text horizontally
+        function centerText(text, width) {
+            const padding = Math.max(0, Math.floor((width - text.length) / 2));
+            return ' '.repeat(padding) + text;
+        }
+
+        // Calculate vertical padding
+        const verticalPadding = Math.max(0, Math.floor((rows - 3) / 2)); // 3 lines to print
+
+        // Print empty lines for vertical centering
+        console.log('\n'.repeat(verticalPadding));
+
+        // Print horizontally centered, styled lines
+        console.log(boldRedBlink + centerText(separator, cols) + reset);
+        console.log(boldRedBlink + centerText(message, cols) + reset);
+        console.log(boldRedBlink + centerText(separator, cols) + reset);
+
+
+
         const results = await readCsv(dir_dse_merged_eod);
         const result_amar_stock = await readCsv(dir_amar_stock_merged_eod);
         const result_dsex = await readCsv(dse_dsex_file);
@@ -55,7 +85,7 @@ function readCsv(file) {
             if (parts[0].length === 4) {
                 return { ...item, Date: parts.join('') };
             }
-            const date = `${parts[2]}${parts[1].padStart(2, '0')}${parts[0].padStart(2, '0')}`;
+            const date = `${parts[2]}${parts[1]?.padStart(2, '0')}${parts[0]?.padStart(2, '0')}`;
             return { ...item, Date: date };
         });
 
@@ -96,9 +126,9 @@ function readCsv(file) {
             }
         }
         const finalMergedData = mergedResult.filter(item => {
-            if (item.SecurityCode.includes('.AT')) {
+            if (item.SecurityCode.includes('.AT') || item.AssetClass === 'GOVDBT') {
                 return false;
-            }else {
+            } else {
                 return true;
             }
         }).map(item => {
@@ -141,7 +171,7 @@ function readCsv(file) {
 
         await csvWriter.writeRecords(finalMergedData);
         console.log(`CSV file created successfully at: ${output_file}`);
-
+        await take_screenshot();
     } catch (err) {
         console.error("Error:", err);
     }
