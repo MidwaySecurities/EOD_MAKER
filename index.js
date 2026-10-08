@@ -33,29 +33,24 @@ function readCsv(file) {
 
 (async () => {
     try {
-        // Center text vertically and horizontally, bold, red, blinking
-        const boldRedBlink = '\x1b[1m\x1b[31m\x1b[5m'; // bold, red, blink
+        const boldRedBlink = '\x1b[1m\x1b[31m\x1b[5m';
         const reset = '\x1b[0m';
         const separator = '--------------------------------------------------';
         const message = 'Reading CSV files, please wait. It takes about 3-5 minutes...';
 
-        // Get terminal size
+
         const rows = process.stdout.rows;
         const cols = process.stdout.columns;
 
-        // Function to center text horizontally
         function centerText(text, width) {
             const padding = Math.max(0, Math.floor((width - text.length) / 2));
             return ' '.repeat(padding) + text;
         }
 
-        // Calculate vertical padding
         const verticalPadding = Math.max(0, Math.floor((rows - 3) / 2)); // 3 lines to print
 
-        // Print empty lines for vertical centering
         console.log('\n'.repeat(verticalPadding));
 
-        // Print horizontally centered, styled lines
         console.log(boldRedBlink + centerText(separator, cols) + reset);
         console.log(boldRedBlink + centerText(message, cols) + reset);
         console.log(boldRedBlink + centerText(separator, cols) + reset);

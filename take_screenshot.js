@@ -1,6 +1,7 @@
+const fs = require('fs');
 const puppeteer = require('puppeteer');
 const { exec } = require('child_process');
-
+const axios = require('axios');
 const currentDate = new Date();
 const currentMonthNum = currentDate.getMonth() + 1;
 const currentDateNum = currentDate.getDate();
@@ -25,54 +26,46 @@ const screenshotTool = async () => {
         const page = await browser.newPage();
         await page.setViewport({ width: 1920, height: 1080, deviceScaleFactor: 1 });
         await page.setDefaultNavigationTimeout(60000);
-
-        // domcontentloaded + small settle wait is more reliable than
-        // networkidle2 on sites with persistent polling/ads
         await page.goto('https://www.dsebd.org/', {
             waitUntil: 'domcontentloaded',
             timeout: 60000
         });
-        await new Promise(r => setTimeout(r, 3000)); // let layout/images settle
+        await new Promise(r => setTimeout(r, 5000));
 
         await page.screenshot({
             path: `${rootDir}/dse_index(${yymmdd}).png`,
-            clip: { x: 380, y: 170, width: 580, height: 510 }
+            clip: { x: 240, y: 550, width: 1450, height: 410 }
         });
 
-        await page.close(); // free resources before opening the next page
+        await page.close();
+        const { data } = await axios.get('https://www.dse.com.bd/api/live/market-statistics');
+        const blockTradeData = await data['block']['rows'];
 
-        const page1 = await browser.newPage();
-        await page1.setViewport({ width: 1920, height: 1080, deviceScaleFactor: 1 });
-        await page1.setDefaultNavigationTimeout(60000);
+        const headers = ['Instr Code', 'Max Price', 'Min Price', 'Trades', 'Quantity', 'Value(In Mn)'];
+        const jsonHeaders = ['code', 'maxPrice', 'minPrice', 'trades', 'quantity', 'valueMn'];
+        const csvRows = [];
 
-        await page1.goto('https://www.dsebd.org/market-statistics.php', {
-            waitUntil: 'domcontentloaded',
-            timeout: 60000
+        csvRows.push(headers.join(','));
+
+        for (const row of blockTradeData) {
+            const values = jsonHeaders.map(header => {
+                const val = row[header];
+                const stringVal = typeof val === 'object' ? JSON.stringify(val) : String(val);
+                return stringVal.includes(',') ? `"${stringVal.replace(/"/g, '""')}"` : stringVal;
+            });
+            csvRows.push(values.join(','));
+        }
+
+        const csvContent = csvRows.join('\n');
+
+        fs.writeFile(`${rootDir}/block_transaction(${yymmdd}).csv`, csvContent, (err) => {
+            if (err) {
+                console.error('Error writing CSV file:', err);
+            } else {
+                console.log('CSV file successfully created using native fs!');
+            }
         });
 
-        await page1.waitForFunction(
-            () => document.body.innerText.includes('Total number of scrips traded in Block'),
-            { timeout: 30000 }
-        );
-
-        const dynamicHeight = await page1.evaluate(() => {
-            const pres = Array.from(document.querySelectorAll('pre'));
-            const target = pres.find(pre =>
-                pre.innerText.includes('Total number of scrips traded in Block')
-            );
-            if (!target) return 550;
-            const rect = target.getBoundingClientRect();
-            return rect.bottom - 1420;
-        });
-
-        console.log('Calculated dynamic height:', dynamicHeight, ' Please wait...');
-
-        await page1.screenshot({
-            path: `${rootDir}/block_transaction(${yymmdd}).png`,
-            clip: { x: 250, y: 1380, width: 590, height: dynamicHeight }
-        });
-
-        await page1.close();
     } catch (err) {
         console.error('Screenshot tool failed:', err);
         throw err;
@@ -83,5 +76,5 @@ const screenshotTool = async () => {
     exec(`start "" "${rootDir}"`);
 };
 
-module.exports = screenshotTool;
 // screenshotTool()
+module.exports = screenshotTool;
