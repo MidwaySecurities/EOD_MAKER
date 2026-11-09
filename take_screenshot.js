@@ -38,7 +38,18 @@ const screenshotTool = async () => {
         });
 
         await page.close();
-        const { data } = await axios.get('https://www.dse.com.bd/api/live/market-statistics');
+        const { data } = await axios.get('https://www.dse.com.bd/api/live/market-statistics',
+            {
+                headers: {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+                    'Accept': 'application/json, text/plain, */*',
+                    'Accept-Language': 'en-US,en;q=0.9',
+                    'Referer': 'https://www.dse.com.bd/',
+                    'Origin': 'https://www.dse.com.bd',
+                    'Connection': 'keep-alive'
+                },
+                timeout: 15000
+            });
         const blockTradeData = await data['block']['rows'];
 
         const headers = ['Instr Code', 'Max Price', 'Min Price', 'Trades', 'Quantity', 'Value(In Mn)'];
